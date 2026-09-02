@@ -1,15 +1,12 @@
 # african-speech-id
 
-Language identification for **1,386 African languages**.
+CPU-friendly, fast language identification for 1,386 African languages.
 
-Speech goes through [Omnilingual ASR](https://github.com/facebookresearch/omnilingual-asr),
-which turns audio into text; this library says which language the text is in.
+The model uses a fast version of Omnilingual ASR to turn speech into text, and a
+classification head that reads that text and names the language. Both run on CPU, so a
+phone or a laptop is enough.
 
-```
-audio ──[sherpa-onnx + omniASR CTC]──▶ transcript ──[this]──▶ language
-```
-
-CPU only. The inference core is C++ with a C API, so there is no Python on the device.
+The inference core is C++ with a C API, so there is no Python on the device.
 
 ```sh
 pip install african-speech-id
@@ -112,15 +109,29 @@ asid_destroy(h);
 `bindings/ios` has a Swift wrapper and a module map, so the C API imports with no
 Objective-C shim and no bridging header.
 
-## Size and speed
+## Speed
 
-CPU only, and deliberately so: the head is a vocabulary lookup and one sparse gather, so a
-GPU would spend longer on transfers than on arithmetic.
+Fast enough to be practical on ordinary hardware, which is the point of building it this
+way. Measured on one Xeon Platinum 8558 core, int8, on held-out audio:
 
-The head is 265 MB — 1,386 classes over 50,000 features. A 300,000-feature version scored
+| | throughput |
+|---|---|
+| classification head alone | 0.28 ms per call, 3,600 per second |
+| full pipeline, 1 thread | 3.5x realtime |
+| full pipeline, 4 threads | 9.3x realtime |
+| facebook/mms-lid-4017, same machine | 1.4x realtime |
+
+So a ten-second clip is identified in under three seconds on a single core, and in about a
+second on four. MMS-LID reads language straight off the audio and needs no recogniser, but
+it is a 970-million-parameter model: 3.9 GB against our 265 MB head, and slower end to end
+even counting the recogniser we depend on.
+
+No GPU path exists and none is wanted. The head is a vocabulary lookup and one sparse
+gather, so a GPU would spend longer on transfers than on arithmetic.
+
+The head is 265 MB, 1,386 classes over 50,000 features. A 300,000-feature version scored
 0.4833 against 0.4779, half a point for twelve times the size, so the smaller vocabulary
-ships. Classification itself costs well under a millisecond; the speech recognition in front
-of it dominates the cost of any request.
+ships.
 
 ## Building from source
 

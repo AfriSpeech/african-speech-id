@@ -1,4 +1,4 @@
-"""Language identification for 1,386 African languages, over speech transcripts.
+"""CPU-friendly, fast language identification for 1,386 African languages.
 
 Sits on top of Omnilingual ASR: that model turns audio into text, this one says which
 language the text is in.

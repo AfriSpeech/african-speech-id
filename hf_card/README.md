@@ -11,15 +11,11 @@ library_name: african-speech-id
 
 # african-speech-id
 
-Language identification for **1,386 African languages**, as a small classifier over speech
-transcripts.
+CPU-friendly, fast language identification for 1,386 African languages.
 
-It sits on top of [Omnilingual ASR](https://github.com/facebookresearch/omnilingual-asr):
-that model turns audio into text, and this one says which language the text is in.
-
-```
-audio ──[sherpa-onnx + omniASR CTC]──▶ transcript ──[this]──▶ language
-```
+The model uses a fast version of Omnilingual ASR to turn speech into text, and a
+classification head that reads that text and names the language. Both run on CPU, so a
+phone or a laptop is enough.
 
 ## What is in this repository
 
@@ -30,6 +26,22 @@ audio ──[sherpa-onnx + omniASR CTC]──▶ transcript ──[this]──�
 The head classifies text and cannot read audio. The recogniser it reads from is
 [omniASR 300M CTC](https://github.com/k2-fsa/sherpa-onnx/releases/tag/asr-models), fetched
 separately by `AfricanSpeechId.download_recogniser()`.
+
+## Speed
+
+The reason to use this rather than a large audio classifier. Measured on one Xeon Platinum
+8558 core, int8, on held-out audio:
+
+| | throughput |
+|---|---|
+| classification head alone | 0.28 ms per call, 3,600 per second |
+| full pipeline, 1 thread | 3.5x realtime |
+| full pipeline, 4 threads | 9.3x realtime |
+| facebook/mms-lid-4017, same machine | 1.4x realtime |
+
+A ten-second clip is identified in under three seconds on a single core. MMS-LID needs no
+recogniser, but it is 970 million parameters and 3.9 GB against this head's 265 MB, and it
+is slower end to end even counting the recogniser this depends on.
 
 ## Results
 

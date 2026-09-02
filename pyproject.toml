@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "african-speech-id"
 version = "0.1.0"
-description = "Language identification for 1,386 African languages, from speech transcripts"
+description = "CPU-friendly, fast language identification for 1,386 African languages"
 readme = "README.md"
 requires-python = ">=3.9"
 license = "Apache-2.0"
