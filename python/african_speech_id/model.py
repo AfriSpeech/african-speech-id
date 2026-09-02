@@ -189,7 +189,7 @@ class AfricanSpeechId:
         """Fetch the omniASR recogniser this head reads, returning (model, tokens) paths.
 
         The head classifies text and cannot read audio, so something has to produce the
-        transcript. That recogniser is 279 MB against this library's 8.2 MB, and it is only
+        transcript. The recogniser is 365 MB against this head's 265 MB, and it is only
         downloaded when you ask for it::
 
             model, tokens = AfricanSpeechId.download_recogniser()

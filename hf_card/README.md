@@ -22,10 +22,14 @@ phone or a laptop is enough.
 | path | what it is | size |
 |---|---|---|
 | `300m/` | the language-ID head | 265 MB |
+| `asr/` | the speech recogniser it reads from | 365 MB |
 
-The head classifies text and cannot read audio. The recogniser it reads from is
-[omniASR 300M CTC](https://github.com/k2-fsa/sherpa-onnx/releases/tag/asr-models), fetched
-separately by `AfricanSpeechId.download_recogniser()`.
+Both come from here, so there is one place to fetch from. `AfricanSpeechId.load()` pulls
+only the head; the recogniser is downloaded when you call
+`AfricanSpeechId.download_recogniser()` and not before.
+
+The recogniser is Meta's Omnilingual ASR, Apache 2.0, mirrored unmodified; `asr/LICENSE` and
+`asr/ATTRIBUTION.md` travel with it.
 
 ## Speed
 
