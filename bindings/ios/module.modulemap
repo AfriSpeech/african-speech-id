@@ -1,0 +1,7 @@
+// Exposes the C API to Swift with no Objective-C shim and no bridging header.
+// In Xcode: set SWIFT_INCLUDE_PATHS (or the SPM `cSettings` header path) to the directory
+// holding this file, and link libafrican_speech_id.a plus onnxruntime.
+module CGhanaSpeechID {
+    header "../../include/african_speech_id.h"
+    export *
+}

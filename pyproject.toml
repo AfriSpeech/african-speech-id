@@ -1,0 +1,73 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "african-speech-id"
+version = "0.1.0"
+description = "Language identification for 1,386 African languages, from speech transcripts"
+readme = "README.md"
+requires-python = ">=3.9"
+license = "Apache-2.0"
+authors = [{ name = "Ghana NLP", email = "info@ghananlp.org" }]
+keywords = ["speech", "language-identification", "ghana", "ipa", "phonemes", "onnx", "lid"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Science/Research",
+  "Programming Language :: Python :: 3",
+  "Topic :: Multimedia :: Sound/Audio :: Speech",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+# The head is a dict lookup and one sparse gather, so the runtime stays tiny. Nothing is
+# compiled: this ships as a single py3-none-any wheel.
+dependencies = [
+  "numpy>=1.21",
+  "onnxruntime>=1.16",
+  "huggingface_hub>=0.20",
+]
+
+[project.optional-dependencies]
+# End to end from audio. Kept optional so the head alone stays a light install.
+asr = ["ghana-ipa-asr"]
+# Everything needed to retrain, in scripts/.
+train = ["scikit-learn>=1.3", "pyarrow>=15", "duckdb>=1.0", "joblib", "onnx", "datasets", "soundfile"]
+dev = ["pytest>=7", "ruff>=0.5"]
+
+[project.scripts]
+african-speech-id = "african_speech_id.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/AfriSpeech/african-speech-id"
+Issues = "https://github.com/AfriSpeech/african-speech-id/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["python/african_speech_id"]
+
+[tool.hatch.build.targets.sdist]
+# the sdist carries the training pipeline and the C++ sources; the wheel does not
+include = ["python/", "scripts/", "src/", "include/", "tests/", "bindings/",
+           "CMakeLists.txt", "README.md", "LICENSE"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+
+# Pinned rather than left to ruff's defaults, which move between releases and made CI fail
+# on rules that were never chosen.
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "W", "RUF"]
+ignore = [
+  "E501",    # line length is enforced by the formatter setting above
+  "E702",    # `a = x; b = y` for tightly-coupled assignments reads better than two lines
+  "E741",    # `l` for a label or line is unambiguous in context here
+  "RUF001",  # ambiguous unicode: ɛ ɔ ŋ are the subject matter, not a typo
+  "RUF002",
+  "RUF003",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# The decode scripts deliberately swallow per-clip failures: one corrupt audio cell must not
+# abort a three-hour run over hundreds of thousands of clips. The exception carries nothing
+# actionable -- the clip is skipped and the count reported at the end.
+"scripts/*" = ["BLE001", "S112", "SIM115", "PLW1510", "T201"]
