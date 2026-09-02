@@ -1,0 +1,242 @@
+[
+ {
+  "file": "_lTVSjRv10k.mp3",
+  "language": "Acholi",
+  "expect": "ach",
+  "iso": "ach",
+  "voiced_seconds": 16,
+  "verdict": "correct"
+ },
+ {
+  "file": "hfxJCEIChIk.mp3",
+  "language": "Afrikaans",
+  "expect": "afr",
+  "iso": "afr",
+  "voiced_seconds": 25,
+  "verdict": "correct"
+ },
+ {
+  "file": "vtbwPtyPmbQ.mp3",
+  "language": "Amharic",
+  "expect": "amh",
+  "iso": "amh",
+  "voiced_seconds": 25,
+  "verdict": "correct"
+ },
+ {
+  "file": "yyFsmiNXqXg.mp3",
+  "language": "Chichewa",
+  "expect": "Chichewa",
+  "iso": "nya",
+  "voiced_seconds": 25,
+  "verdict": "wrong"
+ },
+ {
+  "file": "ym-Wmc3aJAo.mp3",
+  "language": "Ewondo",
+  "expect": "Ewondo",
+  "iso": "ewo",
+  "voiced_seconds": 25,
+  "verdict": "wrong"
+ },
+ {
+  "file": "ld_92xGvyng.mp3",
+  "language": "French",
+  "expect": "French",
+  "iso": null,
+  "voiced_seconds": 23,
+  "verdict": "correct"
+ },
+ {
+  "file": "5cidz5Y3KFQ.mp3",
+  "language": "Gan",
+  "expect": "gna",
+  "iso": "gna",
+  "voiced_seconds": 22,
+  "verdict": "wrong"
+ },
+ {
+  "file": "lGPQI5bOfqU.mp3",
+  "language": "Gonja",
+  "expect": "gjn",
+  "iso": "gjn",
+  "voiced_seconds": 25,
+  "verdict": "wrong"
+ },
+ {
+  "file": "yLyMILKtFHo.mp3",
+  "language": "Grebo",
+  "expect": "Grebo",
+  "iso": "grb",
+  "voiced_seconds": 21,
+  "verdict": "wrong"
+ },
+ {
+  "file": "AtBWbZmCceU.mp3",
+  "language": "Herero",
+  "expect": "her",
+  "iso": "her",
+  "voiced_seconds": 25,
+  "verdict": "correct"
+ },
+ {
+  "file": "w8iwYaa41uo.mp3",
+  "language": "Kigiryama",
+  "expect": "Kigiryama",
+  "iso": null,
+  "voiced_seconds": 25,
+  "verdict": "wrong"
+ },
+ {
+  "file": "C380uSo4Ils.mp3",
+  "language": "Kikamba",
+  "expect": "Kikamba",
+  "iso": null,
+  "voiced_seconds": 25,
+  "verdict": "wrong"
+ },
+ {
+  "file": "1P6ygw-VKKo.mp3",
+  "language": "Kinyarwanda",
+  "expect": "kin",
+  "iso": "kin",
+  "voiced_seconds": 21,
+  "verdict": "correct"
+ },
+ {
+  "file": "MnghW2JB9j4.mp3",
+  "language": "Loma",
+  "expect": "Loma",
+  "iso": "lom",
+  "voiced_seconds": 25,
+  "verdict": "wrong"
+ },
+ {
+  "file": "AYgWSuv00pc.mp3",
+  "language": "Luganda",
+  "expect": "lug",
+  "iso": "lug",
+  "voiced_seconds": 25,
+  "verdict": "wrong"
+ },
+ {
+  "file": "DJ0NRqv5r7g.mp3",
+  "language": "Malagasy",
+  "expect": "Malagasy",
+  "iso": "mlg",
+  "voiced_seconds": 23,
+  "verdict": "wrong"
+ },
+ {
+  "file": "glqy1koOinI.mp3",
+  "language": "Oshiwambo",
+  "expect": "Oshiwambo",
+  "iso": null,
+  "voiced_seconds": 23,
+  "verdict": "wrong"
+ },
+ {
+  "file": "_z62HlBXJJ8.mp3",
+  "language": "Pular",
+  "expect": "Pular",
+  "iso": "fuf",
+  "voiced_seconds": 24,
+  "verdict": "wrong"
+ },
+ {
+  "file": "ZtXr7bckLyc.mp3",
+  "language": "Shona",
+  "expect": "Shona",
+  "iso": "sna",
+  "voiced_seconds": 25,
+  "verdict": "correct"
+ },
+ {
+  "file": "wQlK-V5eEFY.mp3",
+  "language": "Soga",
+  "expect": "xog",
+  "iso": "xog",
+  "voiced_seconds": 25,
+  "verdict": "wrong"
+ },
+ {
+  "file": "XhRzY5ApkBc.mp3",
+  "language": "Spanish",
+  "expect": "Spanish",
+  "iso": null,
+  "voiced_seconds": 24,
+  "verdict": "correct"
+ },
+ {
+  "file": "dsUH7my4fTs.mp3",
+  "language": "Sukuma",
+  "expect": "suk",
+  "iso": "suk",
+  "voiced_seconds": 24,
+  "verdict": "wrong"
+ },
+ {
+  "file": "rK43HXX2fS0.mp3",
+  "language": "Swahili",
+  "expect": "Swahili",
+  "iso": "swa",
+  "voiced_seconds": 9,
+  "verdict": "wrong"
+ },
+ {
+  "file": "TPWT57Wuwac.mp3",
+  "language": "Tem",
+  "expect": "Tem",
+  "iso": "kdh",
+  "voiced_seconds": 23,
+  "verdict": "correct"
+ },
+ {
+  "file": "HXg_tCZfuWg.mp3",
+  "language": "Tsonga",
+  "expect": "tso",
+  "iso": "tso",
+  "voiced_seconds": 24,
+  "verdict": "wrong"
+ },
+ {
+  "file": "vFbZR5shzCk.mp3",
+  "language": "Turkana",
+  "expect": "tuv",
+  "iso": "tuv",
+  "voiced_seconds": 25,
+  "verdict": "wrong"
+ },
+ {
+  "file": "NAhK_HlNNJM.mp3",
+  "language": "Twi",
+  "expect": "Twi",
+  "iso": "twi",
+  "voiced_seconds": 25,
+  "verdict": "wrong"
+ },
+ {
+  "file": "YyYrWgfaRwk.mp3",
+  "language": "Yoruba",
+  "expect": "yor",
+  "iso": "yor",
+  "voiced_seconds": 24,
+  "verdict": "correct"
+ },
+ {
+  "file": "1tgBuR2dWh4.mp3",
+  "language": "Zulu",
+  "expect": "zul",
+  "iso": "zul",
+  "voiced_seconds": 25,
+  "verdict": "correct"
+ },
+ {
+  "file": "wuP_E0oFZkY.mp3",
+  "language": "siLozi",
+  "expect": "loz",
+  "iso": "loz",
+  "voiced_seconds": 24,
+  "verdict": "correct"
+ }
+]

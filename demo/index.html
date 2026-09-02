@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>African Speech ID</title>
+<style>
+  :root {
+    --bg: #0f1115; --card: #171a21; --line: #262b36; --text: #e8eaed;
+    --dim: #9aa3b2; --accent: #4ade80; --warn: #fbbf24; --bad: #f87171;
+  }
+  @media (prefers-color-scheme: light) {
+    :root { --bg:#f6f7f9; --card:#fff; --line:#e3e6ec; --text:#1a1d23;
+            --dim:#5f6673; --accent:#16a34a; }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; background: var(--bg); color: var(--text);
+    font: 16px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    display: flex; align-items: center; justify-content: center; padding: 24px;
+  }
+  .wrap { width: 100%; max-width: 560px; }
+  h1 { font-size: 1.4rem; margin: 0 0 4px; letter-spacing: -0.01em; }
+  .sub { color: var(--dim); font-size: 0.9rem; margin: 0 0 22px; }
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    padding: 22px;
+  }
+  #rec {
+    width: 100%; padding: 18px; font-size: 1.05rem; font-weight: 600; cursor: pointer;
+    border: 0; border-radius: 10px; background: var(--accent); color: #06210f;
+    transition: background .15s, opacity .15s;
+  }
+  #rec[data-state="recording"] { background: var(--bad); color: #2b0b0b; }
+  #rec:disabled { opacity: .55; cursor: default; }
+
+  /* uploading is the primary input: most people have a recording to hand sooner than
+     they have five clean seconds of their own speech to perform */
+  .drop {
+    display: block; width: 100%; padding: 26px 18px; text-align: center; cursor: pointer;
+    border: 1px dashed var(--line); border-radius: 10px; background: var(--bg);
+    color: var(--dim); font-size: .92rem; transition: border-color .15s, color .15s;
+  }
+  .drop:hover, .drop.over { border-color: var(--accent); color: var(--text); }
+  .drop b { display: block; color: var(--text); font-weight: 600; font-size: 1rem;
+            margin-bottom: 4px; }
+  .drop.busy { opacity: .6; cursor: default; }
+  #file { display: none; }
+  .or { display: flex; align-items: center; gap: 12px; margin: 20px 0 16px;
+        color: var(--dim); font-size: .78rem; text-transform: uppercase;
+        letter-spacing: .08em; }
+  .or::before, .or::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+
+  /* 41 chips is a lot of surface, so keep them small and let the row scroll rather
+     than pushing the recorder off the screen */
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; max-height: 148px; overflow-y: auto;
+           padding: 2px; }
+  .chips button {
+    padding: 6px 10px; font-size: .8rem; font-family: inherit; cursor: pointer;
+    color: var(--dim); background: var(--bg); border: 1px solid var(--line);
+    border-radius: 99px; transition: border-color .15s, color .15s;
+  }
+  .chips button:hover { border-color: var(--accent); color: var(--text); }
+  .chips button[data-on="1"] { border-color: var(--accent); color: var(--text); }
+  .chips button:disabled { opacity: .5; cursor: default; }
+  .played { width: 100%; margin-top: 12px; height: 34px; }
+  .played[hidden] { display: none; }
+
+  /* level meter doubles as the "is my mic working" signal and the too-quiet warning */
+  .meter { height: 8px; background: var(--line); border-radius: 99px; margin: 16px 0 6px;
+           overflow: hidden; }
+  .meter > i { display: block; height: 100%; width: 0%; background: var(--accent);
+               transition: width .06s linear; }
+  .meter.low > i { background: var(--warn); }
+
+  .timer { display: flex; justify-content: space-between; font-size: .82rem;
+           color: var(--dim); font-variant-numeric: tabular-nums; }
+  .hint { margin-top: 14px; font-size: .86rem; color: var(--dim); min-height: 1.4em; }
+  .hint.warn { color: var(--warn); }
+  .hint.bad { color: var(--bad); }
+
+  #out { margin-top: 18px; display: none; }
+  .lang { font-size: 1.9rem; font-weight: 700; letter-spacing: -0.02em; }
+  .conf { color: var(--dim); font-size: .9rem; margin-top: 2px; }
+  .bars { margin-top: 14px; display: grid; gap: 7px; }
+  .bar { display: grid; grid-template-columns: 128px 1fr 46px; gap: 10px;
+         align-items: center; font-size: .84rem; }
+  .bar .t { background: var(--line); height: 7px; border-radius: 99px; overflow: hidden; }
+  .bar .t > i { display: block; height: 100%; background: var(--accent); }
+  .bar .n { color: var(--dim); text-align: right; font-variant-numeric: tabular-nums; }
+  .tx { margin-top: 16px; padding: 12px; background: var(--bg); border-radius: 8px;
+        border: 1px solid var(--line); font-size: .85rem; color: var(--dim);
+        word-break: break-word; }
+  .tx b { color: var(--text); font-weight: 500; }
+  .note { margin-top: 12px; font-size: .82rem; color: var(--warn); }
+  footer { margin-top: 18px; font-size: .78rem; color: var(--dim); text-align: center; }
+  footer a { color: var(--dim); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>African Speech ID</h1>
+  <p class="sub">Upload something spoken, or record yourself, and it tells you which of
+     1,386 African languages it is.</p>
+
+  <div class="card">
+    <label class="drop" id="drop" for="file">
+      <b>Upload audio or video</b>
+      or drag a file here
+    </label>
+    <input id="file" type="file" accept="audio/*,video/*">
+    <div class="hint" id="urlhint">Any common format. It throws away the silence and reads
+      up to twenty seconds of actual speech — usually far more than someone records by
+      hand, which is why this is the more accurate route.</div>
+
+    <div class="or">or try a sample</div>
+
+    <div class="chips" id="chips"></div>
+    <audio id="clip" class="played" controls hidden></audio>
+    <div class="hint" id="samphint">Pick a language to hear a real recording and see what
+      the model makes of it. These are unscripted conversations from Wikitongues — the
+      hardest material we test on, and nothing like the read speech the model was trained
+      on. It gets about 12 of these 30 right. That gap is the honest one.</div>
+
+    <div class="or">or record</div>
+
+    <button id="rec">Hold on — checking microphone…</button>
+
+    <div class="meter" id="meterBox"><i id="meter"></i></div>
+    <div class="timer"><span id="elapsed">0.0s</span><span id="target">aim for 10 seconds</span></div>
+
+    <div class="hint" id="hint">Tap to record and speak for ten seconds if you can. Five is
+      the minimum and scores 0.66; ten reaches 0.78, and past that there is little left to
+      gain. These languages are closely related and a few words rarely separate them.</div>
+
+    <div id="out">
+      <div class="lang" id="lang"></div>
+      <div class="conf" id="conf"></div>
+      <div class="bars" id="bars"></div>
+      <div class="tx" id="tx"></div>
+      <div class="note" id="note"></div>
+    </div>
+  </div>
+
+  <footer>
+    <a href="https://github.com/AfriSpeech/african-speech-id">github</a> ·
+    <a href="https://huggingface.co/AfriSpeech/african-speech-id">model</a> ·
+    1,386 languages · runs on CPU · longer speech is more accurate<br>
+    sample recordings from <a href="https://wikitongues.org">Wikitongues</a>, CC BY-NC-SA
+  </footer>
+</div>
+
+<script>
+const WARM = "https://ghana-nlp-2--african-speech-id-identifier-warm.modal.run";
+const IDENTIFY = "https://ghana-nlp-2--african-speech-id-identifier-identify.modal.run";
+const IDENTIFY_FILE = "https://ghana-nlp-2--african-speech-id-identifier-identify-file.modal.run";
+
+// Measured out of domain on real audio of each length, not on truncated transcripts:
+// 3 s 0.506, 5 s 0.657, 7 s 0.759, whole clips averaging 9.7 s 0.777. So five seconds is
+// the floor the server enforces (with at least 80% speech), and ten is the target past
+// which the curve is flat -- the timer nags for the difference between the two.
+const MIN_SEC = 5.0, TARGET_SEC = 10.0, MAX_SEC = 20.0;
+const SR = 16000;
+const QUIET_RMS = 0.012;      // below this the recogniser tends to return nothing
+
+const el = id => document.getElementById(id);
+const btn = el("rec");
+let ctx, stream, node, src, chunks = [], recording = false, t0 = 0, raf = 0;
+let peakSeen = 0, warmed = false;
+
+function displayName(label) {
+  // "Bassar_Ntcham_bud" -> "Bassar Ntcham"; the trailing ISO code is not for readers
+  const p = label.split("_");
+  if (p.length > 1 && /^[a-z]{2,4}$/.test(p[p.length - 1])) p.pop();
+  return p.join(" ");
+}
+
+function setHint(text, cls = "") { el("hint").className = "hint " + cls; el("hint").textContent = text; }
+
+// Fired the instant the button is pressed, before the permission prompt. Containers scale
+// to zero and cold start is about 8 seconds; the prompt plus the recording usually covers
+// it, so the user rarely waits. Nothing runs while nobody is recording.
+function warm() {
+  if (warmed) return;
+  warmed = true;
+  fetch(WARM, { mode: "cors" }).catch(() => {});
+}
+
+function encodeWav(samples, sampleRate) {
+  const buf = new ArrayBuffer(44 + samples.length * 2);
+  const v = new DataView(buf);
+  const str = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+  str(0, "RIFF"); v.setUint32(4, 36 + samples.length * 2, true); str(8, "WAVE");
+  str(12, "fmt "); v.setUint32(16, 16, true); v.setUint16(20, 1, true);
+  v.setUint16(22, 1, true); v.setUint32(24, sampleRate, true);
+  v.setUint32(28, sampleRate * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+  str(36, "data"); v.setUint32(40, samples.length * 2, true);
+  let o = 44;
+  for (let i = 0; i < samples.length; i++, o += 2) {
+    const s = Math.max(-1, Math.min(1, samples[i]));
+    v.setInt16(o, s < 0 ? s * 0x8000 : s * 0x7fff, true);
+  }
+  return new Blob([buf], { type: "audio/wav" });
+}
+
+function tick() {
+  if (!recording) return;
+  const secs = (performance.now() - t0) / 1000;
+  el("elapsed").textContent = secs.toFixed(1) + "s";
+  if (secs < MIN_SEC) {
+    el("target").textContent = "keep going — " + (MIN_SEC - secs).toFixed(1) + "s more";
+  } else if (secs < TARGET_SEC) {
+    el("target").textContent = "enough to try — keep going to 10s for the best result";
+  } else {
+    el("target").textContent = "plenty — tap to stop";
+  }
+  if (secs >= MAX_SEC) { stop(); return; }
+  raf = requestAnimationFrame(tick);
+}
+
+async function start() {
+  warm();                                  // before the permission prompt, deliberately
+  setHint("Allow microphone access…");
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true,
+               autoGainControl: true }
+    });
+  } catch (e) {
+    setHint("Microphone blocked. Allow access in your browser and try again.", "bad");
+    return;
+  }
+  // Ask the browser for 16 kHz directly rather than resampling afterwards: the recogniser
+  // wants 16 kHz mono, and a naive downsample introduces aliasing that costs accuracy.
+  ctx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: SR });
+  if (ctx.state === "suspended") await ctx.resume();
+  src = ctx.createMediaStreamSource(stream);
+  node = ctx.createScriptProcessor(4096, 1, 1);
+  chunks = []; peakSeen = 0;
+
+  node.onaudioprocess = e => {
+    if (!recording) return;
+    const inp = e.inputBuffer.getChannelData(0);
+    chunks.push(new Float32Array(inp));
+    let sum = 0;
+    for (let i = 0; i < inp.length; i++) sum += inp[i] * inp[i];
+    const rms = Math.sqrt(sum / inp.length);
+    peakSeen = Math.max(peakSeen, rms);
+    const pct = Math.min(100, (rms / 0.15) * 100);
+    el("meter").style.width = pct + "%";
+    el("meterBox").className = "meter" + (peakSeen < QUIET_RMS ? " low" : "");
+  };
+  src.connect(node); node.connect(ctx.destination);
+
+  recording = true; t0 = performance.now();
+  el("out").style.display = "none";
+  btn.dataset.state = "recording"; btn.textContent = "Stop";
+  setHint("Listening — speak a full sentence.");
+  tick();
+}
+
+async function stop() {
+  if (!recording) return;
+  recording = false; cancelAnimationFrame(raf);
+  const secs = (performance.now() - t0) / 1000;
+  try { node.disconnect(); src.disconnect(); stream.getTracks().forEach(t => t.stop()); } catch (e) {}
+  const rate = ctx.sampleRate; try { await ctx.close(); } catch (e) {}
+  el("meter").style.width = "0%";
+  btn.dataset.state = ""; btn.textContent = "Record";
+
+  if (secs < MIN_SEC) {
+    setHint("Only " + secs.toFixed(1) + "s. At least " + MIN_SEC + "s is needed — accuracy "
+            + "roughly halves on very short clips.", "warn");
+    return;
+  }
+  if (peakSeen < QUIET_RMS) {
+    setHint("That was very quiet. Move closer to the microphone and try again.", "warn");
+    return;
+  }
+
+  let n = 0; chunks.forEach(c => n += c.length);
+  const all = new Float32Array(n);
+  let off = 0; chunks.forEach(c => { all.set(c, off); off += c.length; });
+
+  btn.disabled = true;
+  setHint("Identifying…");
+  const wav = encodeWav(all, rate);
+  const b64 = await new Promise(res => {
+    const r = new FileReader();
+    r.onloadend = () => res(String(r.result).split(",")[1]);
+    r.readAsDataURL(wav);
+  });
+
+  try {
+    const resp = await fetch(IDENTIFY, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ audio: b64 })
+    });
+    show(await resp.json());
+  } catch (e) {
+    setHint("Could not reach the service. Try again in a moment.", "bad");
+  }
+  btn.disabled = false;
+}
+
+function show(d, sink, expected) {
+  const say = sink || setHint;
+  if (!d || !d.ok) {
+    const why = d && d.reason ? d.reason : "something went wrong";
+    let msg;
+    if (why === "not enough speech") {
+      const total = d.seconds != null ? d.seconds : d.fetched_seconds;
+      msg = "Only " + (d.speech_seconds || 0).toFixed(1) + "s of the "
+          + (total || 0).toFixed(1) + "s was speech"
+          + (d.speech_ratio != null ? " (" + Math.round(d.speech_ratio * 100) + "%)" : "")
+          + ". " + (sink ? "Try a file with more continuous talking."
+                         : "Speak continuously — pauses and silence do not help.");
+    } else if (why === "could not read that file") {
+      msg = "Could not read that file — it may have no audio track.";
+    } else if (why === "file too large") {
+      msg = "That file is too large. Upload a shorter clip.";
+    } else if (why === "no file supplied") {
+      msg = "No file was received. Try choosing it again.";
+    } else if (why === "too short") {
+      msg = "Too short. Record at least " + (d.need_seconds || MIN_SEC) + " seconds.";
+    } else if (why === "no speech recognised") {
+      msg = "No speech recognised. Speak louder, or closer to the microphone.";
+    } else if (why === "too quiet") {
+      msg = "Too quiet. Move closer to the microphone and try again.";
+    } else {
+      msg = "Could not identify: " + why;
+    }
+    say(msg, "warn");
+    return;
+  }
+  say(sink ? "Upload another file to try again." : "Tap to record again.");
+  el("lang").textContent = displayName(d.language);
+  el("conf").textContent = Math.round(d.confidence * 100) + "% confident · "
+    + d.seconds + "s audio, " + (d.speech_seconds != null ? d.speech_seconds + "s speech · " : "")
+    + d.chars + " characters recognised";
+  el("bars").innerHTML = d.top.map(t =>
+    '<div class="bar"><span>' + displayName(t.language) + '</span>'
+    + '<span class="t"><i style="width:' + Math.round(t.score * 100) + '%"></i></span>'
+    + '<span class="n">' + Math.round(t.score * 100) + '%</span></div>').join("");
+  el("tx").innerHTML = "<b>Heard:</b> " + d.transcript;
+  if (expected && d.language !== expected) {
+    el("lang").textContent += " — asked for " + displayName(expected);
+  }
+  el("note").textContent = d.short
+    ? "Short sample. Accuracy climbs steeply with speech — a longer recording will be "
+      + "noticeably more reliable."
+    : "";
+  el("out").style.display = "block";
+}
+
+// ------------------------------------------------------------------ sample clips
+// Real recordings from Wikitongues: people talking about their lives on a phone camera.
+// This is unscripted conversation, which is the hardest thing we measure -- the model
+// scores about 0.40 here against 0.61 on read speech. The page says so rather than
+// hiding it behind a curated set that only shows wins.
+let SAMPLES = [], NAMES = {};
+
+const chips = el("chips"), clipEl = el("clip");
+let sampleBusy = false;
+
+function setSampHint(text, cls = "") {
+  el("samphint").className = "hint " + cls;
+  el("samphint").textContent = text;
+}
+
+function pretty(code) {
+  const n = NAMES[code];
+  return n && n !== code ? n + " (" + code + ")" : code;
+}
+
+async function runSample(entry, chip) {
+  if (sampleBusy) return;
+  sampleBusy = true;
+  warm();
+  chips.querySelectorAll("button").forEach(b => { b.disabled = true; b.dataset.on = "0"; });
+  chip.dataset.on = "1";
+  el("out").style.display = "none";
+  setSampHint("Listening to the " + entry.language + " clip\u2026");
+  try {
+    const audio = await (await fetch("samples/" + entry.file)).blob();
+    clipEl.src = URL.createObjectURL(audio);
+    clipEl.hidden = false;
+    clipEl.play().catch(() => {});
+    const resp = await fetch(IDENTIFY_FILE, {
+      method: "POST", mode: "cors",
+      headers: { "Content-Type": "application/octet-stream" },
+      body: audio,
+    });
+    const d = await resp.json();
+    show(d, setSampHint);
+    if (d && d.ok) {
+      const right = entry.verdict === "correct";
+      setSampHint("This clip is " + entry.language + ". The model said "
+        + pretty(String(d.language)) + (right ? " \u2014 correct." : "."),
+        right ? "" : "warn");
+    }
+  } catch (e) {
+    setSampHint("Could not play that sample. Try another.", "warn");
+  }
+  chips.querySelectorAll("button").forEach(b => { b.disabled = false; });
+  sampleBusy = false;
+}
+
+fetch("samples/manifest.json").then(r => r.json()).then(list => {
+  SAMPLES = list;
+  list.forEach(entry => {
+    const b = document.createElement("button");
+    b.textContent = entry.language;
+    b.onclick = () => runSample(entry, b);
+    chips.appendChild(b);
+  });
+}).catch(() => setSampHint("Samples unavailable.", "warn"));
+fetch("label_names.json").then(r => r.json()).then(n => { NAMES = n; }).catch(() => {});
+chips.addEventListener("mouseenter", warm, { once: true });
+
+// ------------------------------------------------------------------ file upload
+const drop = el("drop"), fileInput = el("file");
+const MAX_MB = 80;
+
+function setUrlHint(text, cls = "") {
+  el("urlhint").className = "hint " + cls;
+  el("urlhint").textContent = text;
+}
+
+async function identifyFile(f) {
+  if (!f) return;
+  if (f.size > MAX_MB * 1024 * 1024) {
+    setUrlHint("That file is over " + MAX_MB + " MB. Trim it, or upload a shorter clip.", "warn");
+    return;
+  }
+  warm();
+  drop.classList.add("busy");
+  el("out").style.display = "none";
+  // Decoding and transcribing takes a few seconds, and a silent page reads as a hang.
+  setUrlHint("Reading " + f.name + "…");
+  try {
+    const resp = await fetch(IDENTIFY_FILE, {
+      method: "POST", mode: "cors",
+      headers: { "Content-Type": "application/octet-stream" },
+      body: f,
+    });
+    show(await resp.json(), setUrlHint);
+  } catch (e) {
+    setUrlHint("Could not reach the service. Try again in a moment.", "bad");
+  }
+  drop.classList.remove("busy");
+  fileInput.value = "";          // so re-picking the same file fires change again
+}
+
+fileInput.onchange = () => identifyFile(fileInput.files[0]);
+drop.onmouseenter = warm;
+
+["dragenter", "dragover"].forEach(ev => drop.addEventListener(ev, e => {
+  e.preventDefault(); drop.classList.add("over"); warm();
+}));
+["dragleave", "drop"].forEach(ev => drop.addEventListener(ev, e => {
+  e.preventDefault(); drop.classList.remove("over");
+}));
+drop.addEventListener("drop", e => {
+  const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+  if (f) identifyFile(f);
+});
+
+btn.onclick = () => recording ? stop() : start();
+
+// Only enable the button once we know a microphone is reachable, so the first tap is not a
+// dead end. This asks nothing and grants nothing -- the permission prompt comes on tap.
+(async () => {
+  if (!navigator.mediaDevices || !window.AudioContext && !window.webkitAudioContext) {
+    btn.textContent = "Not supported in this browser"; return;
+  }
+  btn.disabled = false; btn.textContent = "Record";
+})();
+</script>
+</body>
+</html>
