@@ -22,11 +22,14 @@ Evaluated on two held-out sets, against
 
 | test set | languages | clips | **this model** | MMS-LID-4017 |
 |---|---|---|---|---|
-| [Waxal](https://huggingface.co/datasets/google/WaxalNLP) | 28 | 1,675 | **0.610** | 0.604 |
-| [omniASR corpus](https://huggingface.co/datasets/facebook/omnilingual-asr-corpus) (test) | 76 | 4,557 | **0.429** | 0.270 |
-| **combined** | **104** | **6,232** | **0.478** | **0.360** |
+| [Waxal](https://huggingface.co/datasets/google/WaxalNLP) | 28 | 1,675 | **0.609** | 0.604 |
+| [omniASR corpus](https://huggingface.co/datasets/facebook/omnilingual-asr-corpus) (test) | 76 | 4,557 | **0.425** | 0.270 |
+| **combined** | **104** | **6,232** | **0.474** | **0.360** |
 
-Per language the model is ahead on 57, behind on 38, and tied on 9.
+Per language the model is ahead on 59, behind on 38, and tied on 7.
+
+Measured through the int8 recogniser this ships with, so these are the numbers a
+user gets. Decoding with fp32 instead scores 0.478, a third of a point higher.
 
 The gap is widest on the long tail. MMS-LID covers 4,017 languages and is strong on
 well-resourced ones; this model is built for the languages underneath that, which is where

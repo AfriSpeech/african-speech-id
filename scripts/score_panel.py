@@ -77,6 +77,8 @@ def main() -> None:
     ap.add_argument("--min-seconds", type=float, default=3.0)
     ap.add_argument("--batch", type=int, default=8)
     ap.add_argument("--out", default="out/panel_scores.json")
+    ap.add_argument("--sources", default="",
+                    help="comma-separated subset, e.g. waxal,omni")
     ap.add_argument("--provider", default="cuda",
                     help="cpu for the int8 build: quantised ops have no CUDA "
                          "kernels and fall back node by node")
@@ -155,8 +157,11 @@ def main() -> None:
         if m:
             items.append(("C", "omni", m.group(1), m.group(1), [f]))
 
+    only = {x for x in args.sources.split(",") if x}
     grouped = defaultdict(lambda: defaultdict(list))
     for tier, src, key, iso, files in items:
+        if only and src not in only:
+            continue
         grouped[(tier, src)][iso].extend(files)
 
     results = []
@@ -210,7 +215,10 @@ def main() -> None:
                   f"   n={len(texts)}  ({time.time()-t0:.0f}s)", flush=True)
 
     # ---- WikiTongues: plain wav on disk, labelled by video id ----
-    wt_idx = json.loads(Path("data/wikitongues_test_index.json").read_text())
+    if only and "wikitongues" not in only:
+        wt_idx = {}
+    else:
+        wt_idx = json.loads(Path("data/wikitongues_test_index.json").read_text())
     wt = defaultdict(list)
     for vid, meta in wt_idx.items():
         p = Path(f"data/test_raw/wikitongues/{vid}.wav")

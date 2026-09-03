@@ -55,11 +55,16 @@ produce:
 
 | test set | languages | clips | **this model** | MMS-LID-4017 |
 |---|---|---|---|---|
-| [Waxal](https://huggingface.co/datasets/google/WaxalNLP) | 28 | 1,675 | **0.610** | 0.604 |
-| [omniASR corpus](https://huggingface.co/datasets/facebook/omnilingual-asr-corpus) (test split) | 76 | 4,557 | **0.429** | 0.270 |
-| **combined** | **104** | **6,232** | **0.478** | **0.360** |
+| [Waxal](https://huggingface.co/datasets/google/WaxalNLP) | 28 | 1,675 | **0.609** | 0.604 |
+| [omniASR corpus](https://huggingface.co/datasets/facebook/omnilingual-asr-corpus) (test split) | 76 | 4,557 | **0.425** | 0.270 |
+| **combined** | **104** | **6,232** | **0.474** | **0.360** |
 
-Per language: ahead on 57, behind on 38, tied on 9.
+Per language: ahead on 59, behind on 38, tied on 7.
+
+Measured through the int8 recogniser in `asr/`, so these are the numbers you get
+rather than a best case. Transcribing with the fp32 build instead scores 0.478 --
+the training transcripts were produced that way, and the mismatch costs a third of
+a point.
 
 MMS-LID covers 4,017 languages and is strong on well-resourced ones. This model covers 1,386
 and is built for the tail underneath them, which is what the omniASR test set is made of.
